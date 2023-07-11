@@ -6,15 +6,19 @@ import EndGameScreen from './EndGameScreen'
 
 import Board from '../components/Board'
 
+import { hathoraFindLobbies, pollConnectionInfo } from '../client-hathora'
+import { Client } from 'colyseus.js'
+
+
 export default class GameScreen extends PIXI.Container {
 
   constructor () {
     super()
-
-    let text = (colyseus.readyState === WebSocket.CLOSED)
-      ? "Couldn't connect."
-      : "Waiting for an opponent..."
-
+    
+    let text = 'waiting for an opponent...'// (client.readyState === WebSocket.CLOSED)
+      // ? "Couldn't connect."
+      // : "Waiting for an opponent..."
+    
     this.waitingText = new PIXI.Text(text, {
       font: "100px JennaSue",
       fill: '#000',
@@ -33,7 +37,21 @@ export default class GameScreen extends PIXI.Container {
   }
 
   async connect () {
-    this.room = await colyseus.joinOrCreate('tictactoe');
+    let create = false
+    const getInfo = await hathoraFindLobbies();
+    console.log(getInfo)
+    create = getInfo.create;
+    
+    const client = new Client(getInfo.url)
+
+    if (client){
+    if (create == true){
+      console.log(getInfo.roomId)
+      this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
+    }else{
+      this.room = await client.joinById(getInfo.roomId)
+    }
+    // this.room = await colyseus.joinOrCreate('tictactoe');
 
     let numPlayers = 0;
     this.room.state.players.onAdd(() => {
@@ -63,6 +81,7 @@ export default class GameScreen extends PIXI.Container {
     });
 
     this.room.onError.once(() => this.emit('goto', TitleScreen));
+    }
   }
 
   transitionIn () {

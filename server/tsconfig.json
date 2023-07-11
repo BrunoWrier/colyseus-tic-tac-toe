@@ -8,9 +8,12 @@
         "noImplicitAny": false,
         "experimentalDecorators": true,
         "sourceMap": false,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "allowJs": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
     },
     "include": [
       "**/*.ts"
-    ]
+, "../javascript-pixi/src/client-hathora.ts"    ]
 }
