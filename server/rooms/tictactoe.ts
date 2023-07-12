@@ -167,7 +167,7 @@ export class TicTacToe extends Room<State> {
   }
 
   async onDispose () {
-    hathoraDestroyLobby(this.roomId)
+    await hathoraDestroyLobby(this.roomId)
   }
 
 }

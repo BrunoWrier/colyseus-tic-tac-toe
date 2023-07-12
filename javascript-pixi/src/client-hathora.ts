@@ -99,13 +99,10 @@ export const hathoraFindLobbies = async () => {
         }
 
         if (elementState.playerCount > 1){
-          console.log('next')
-
           if (i == rooms.length - 1){
             let lobby = await createLobby()
             let info = await pollConnectionInfo(lobby.roomId)
             let url = `wss://1.proxy.hathora.dev:${info.port}`
-            console.log(lobby.roomId + url)
             return { "create": true, "roomId": lobby.roomId, "url": url}
           }
           else { continue }
@@ -113,13 +110,11 @@ export const hathoraFindLobbies = async () => {
         else{
           let info = await pollConnectionInfo(element.roomId)
           let url = `wss://1.proxy.hathora.dev:${info.port}`
-          console.log(element.roomId + url)
           return {"create": false, "roomId": element.roomId, "url": url}
         }
       }catch(error){
         let info = await pollConnectionInfo(element.roomId)
         let url = `wss://1.proxy.hathora.dev:${info.port}`
-        console.log(element.roomId + url)
         return {"create": false, "roomId": element.roomId, "url": url}
       }
     }
