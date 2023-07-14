@@ -9,7 +9,6 @@ import Board from '../components/Board'
 import { hathoraFindLobbies } from '../client-hathora'
 import { Client } from 'colyseus.js'
 
-
 export default class GameScreen extends PIXI.Container {
 
   constructor () {
