@@ -44,7 +44,7 @@ export default class GameScreen extends PIXI.Container {
       if (create == true){
         this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
       }else{
-        this.room = await client.joinById(getInfo.roomId)
+        this.room = await client.joinById(getInfo.roomId);
       }
 
       let numPlayers = 0;
