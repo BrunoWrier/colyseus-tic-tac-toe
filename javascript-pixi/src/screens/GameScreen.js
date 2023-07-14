@@ -36,14 +36,12 @@ export default class GameScreen extends PIXI.Container {
   async connect () {
     let create = false
     const getInfo = await hathoraFindLobbies();
-    console.log(getInfo)
     create = getInfo.create;
     
     const client = new Client(getInfo.url)
 
     if (client){
       if (create == true){
-        console.log(getInfo.roomId)
         this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
       }else{
         this.room = await client.joinById(getInfo.roomId)
