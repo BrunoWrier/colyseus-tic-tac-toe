@@ -15,5 +15,5 @@
     },
     "include": [
       "**/*.ts"
-, "../javascript-pixi/src/client-hathora.ts"    ]
+, "server-hathora.ts"    ]
 }

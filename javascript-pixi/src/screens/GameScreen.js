@@ -6,7 +6,7 @@ import EndGameScreen from './EndGameScreen'
 
 import Board from '../components/Board'
 
-import { hathoraFindLobbies, pollConnectionInfo } from '../client-hathora'
+import { hathoraFindLobbies } from '../client-hathora'
 import { Client } from 'colyseus.js'
 
 
@@ -15,9 +15,7 @@ export default class GameScreen extends PIXI.Container {
   constructor () {
     super()
     
-    let text = 'waiting for an opponent...'// (client.readyState === WebSocket.CLOSED)
-      // ? "Couldn't connect."
-      // : "Waiting for an opponent..."
+    let text = 'Waiting for an opponent...'
     
     this.waitingText = new PIXI.Text(text, {
       font: "100px JennaSue",
@@ -45,42 +43,41 @@ export default class GameScreen extends PIXI.Container {
     const client = new Client(getInfo.url)
 
     if (client){
-    if (create == true){
-      console.log(getInfo.roomId)
-      this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
-    }else{
-      this.room = await client.joinById(getInfo.roomId)
-    }
-    // this.room = await colyseus.joinOrCreate('tictactoe');
-
-    let numPlayers = 0;
-    this.room.state.players.onAdd(() => {
-      numPlayers++;
-
-      if (numPlayers === 2) {
-        this.onJoin();
+      if (create == true){
+        console.log(getInfo.roomId)
+        this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
+      }else{
+        this.room = await client.joinById(getInfo.roomId)
       }
-    });
 
-    this.room.state.board.onChange((value, index) => {
-      const x = index % 3;
-      const y = Math.floor(index / 3);
-      this.board.set(x, y, value);
-    })
+      let numPlayers = 0;
+      this.room.state.players.onAdd(() => {
+        numPlayers++;
 
-    this.room.state.listen("currentTurn", (sessionId) => {
-      // go to next turn after a little delay, to ensure "onJoin" gets called before this.
-      setTimeout(() => this.nextTurn(sessionId), 10);
-    });
+        if (numPlayers === 2) {
+          this.onJoin();
+        }
+      });
 
-    this.room.state.listen("draw", () => this.drawGame());
-    this.room.state.listen("winner", (sessionId) => this.showWinner(sessionId));
+      this.room.state.board.onChange((value, index) => {
+        const x = index % 3;
+        const y = Math.floor(index / 3);
+        this.board.set(x, y, value);
+      })
 
-    this.room.state.onChange((changes) => {
-      console.log("state.onChange =>", changes);
-    });
+      this.room.state.listen("currentTurn", (sessionId) => {
+        // go to next turn after a little delay, to ensure "onJoin" gets called before this.
+        setTimeout(() => this.nextTurn(sessionId), 10);
+      });
 
-    this.room.onError.once(() => this.emit('goto', TitleScreen));
+      this.room.state.listen("draw", () => this.drawGame());
+      this.room.state.listen("winner", (sessionId) => this.showWinner(sessionId));
+
+      this.room.state.onChange((changes) => {
+        console.log("state.onChange =>", changes);
+      });
+
+      this.room.onError.once(() => this.emit('goto', TitleScreen));
     }
   }
 

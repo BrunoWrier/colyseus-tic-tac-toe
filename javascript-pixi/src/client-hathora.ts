@@ -1,6 +1,4 @@
 import { LobbyV2Api, RoomV1Api, AuthV1Api, Lobby} from "@hathora/hathora-cloud-sdk";
-import WebSocket from 'ws';
-import fetch from 'node-fetch';
 
 export const lobbyClient = new LobbyV2Api();
 export const roomClient = new RoomV1Api();
@@ -35,19 +33,19 @@ const getPing = async () => {
     return region;
 }
 
-  export const createLobby = async () => {
-    // let pingRegion = await getPing()
+export const createLobby = async () => {
+  let pingRegion = await getPing()
 
-    const playerToken = (await (authClient.loginAnonymous(HATHORA_APP_ID))).token;
-    return await lobbyClient.createLobby(
-        HATHORA_APP_ID,
-        playerToken,
-        {
-          visibility: "public",
-          region: "Sao_Paulo", // pingRegion,
-          initialConfig: {}
-        },
-    );
+  const playerToken = (await (authClient.loginAnonymous(HATHORA_APP_ID))).token;
+  return await lobbyClient.createLobby(
+      HATHORA_APP_ID,
+      playerToken,
+      {
+        visibility: "public",
+        region: pingRegion,
+        initialConfig: {}
+      },
+  );
 }
 
 const getHathoraConnectionInfo = async (roomId: string) => {
@@ -55,13 +53,10 @@ const getHathoraConnectionInfo = async (roomId: string) => {
         HATHORA_APP_ID,
         roomId,
     );
-    
     if (info === undefined){
         return undefined;
-    } 
-
+    }
     return info;
-
 }
 
 export const pollConnectionInfo = async (roomId: string) => {
@@ -71,52 +66,46 @@ export const pollConnectionInfo = async (roomId: string) => {
         await new Promise((resolve) => setTimeout(resolve, 200));
         result = await getHathoraConnectionInfo(roomId);
     }
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return result;
 }
 
 export const hathoraFindLobbies = async () => {
-  const rooms = await lobbyClient.listActivePublicLobbies(HATHORA_APP_ID)
+  const rooms = await lobbyClient.listActivePublicLobbies(HATHORA_APP_ID);
 
   if (rooms.length === 0){
-    let lobby = await createLobby()
-    let info = await pollConnectionInfo(lobby.roomId)
-    let url = `wss://1.proxy.hathora.dev:${info.port}`
-    console.log(lobby.roomId + url)
-    return { "create": true, "roomId": lobby.roomId, "url": url}
+    let lobby = await createLobby();
+    return await findlobbiesReturn(lobby, true);
   }
   else if (rooms.length > 0){
-    console.log('there is rooms')
-    console.log(rooms)
-
     for (let i = 0; i < rooms.length; i++) {
       const element= rooms[i] as Lobby;
       let elementState = element.state as LobbyState
-      
+
       try{
         if (typeof elementState.playerCount != 'number'){
           return
         }
-
         if (elementState.playerCount > 1){
           if (i == rooms.length - 1){
-            let lobby = await createLobby()
-            let info = await pollConnectionInfo(lobby.roomId)
-            let url = `wss://1.proxy.hathora.dev:${info.port}`
-            return { "create": true, "roomId": lobby.roomId, "url": url}
+            let lobby = await createLobby();
+            return await findlobbiesReturn(lobby, true);
           }
           else { continue }
         }
         else{
-          let info = await pollConnectionInfo(element.roomId)
-          let url = `wss://1.proxy.hathora.dev:${info.port}`
-          return {"create": false, "roomId": element.roomId, "url": url}
+          return await findlobbiesReturn(element, false);
         }
       }catch(error){
-        let info = await pollConnectionInfo(element.roomId)
-        let url = `wss://1.proxy.hathora.dev:${info.port}`
-        return {"create": false, "roomId": element.roomId, "url": url}
+        return await findlobbiesReturn(element, false);
       }
     }
   }
+}
+
+const findlobbiesReturn = async ( lobby, create: boolean ) => {
+  let info = await pollConnectionInfo(lobby.roomId);
+  let url = `wss://1.proxy.hathora.dev:${info.port}`;
+  return { "create": create, "roomId": lobby.roomId, "url": url}
 }
