@@ -7,7 +7,7 @@ const HATHORA_APP_ID = "app-71bf9a1f-6fcd-4ad5-aad8-30618715825f";
 
 type LobbyState = { playerCount: number };
 
-const getLowestregion = async () => {
+const getLowestPingRegion = async () => {
     const response = await fetch('https://api.hathora.dev/discovery/v1/ping');
 
     if (!response.ok) {
@@ -34,7 +34,7 @@ const getLowestregion = async () => {
 }
 
 export const createLobby = async () => {
-  let region = await getLowestregion()
+  let region = await getLowestPingRegion()
 
   const playerToken = (await (authClient.loginAnonymous(HATHORA_APP_ID))).token;
   return await lobbyClient.createLobby(
@@ -78,7 +78,7 @@ export const findAvailableLobby = async () => {
     const roomState = room.state as LobbyState;
 
     if (roomState !== undefined && roomState.playerCount <= 1) {
-        return await getLobbyInfo(room);
+        return room;
     }
   }
 }

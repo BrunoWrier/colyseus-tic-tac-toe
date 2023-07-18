@@ -7,7 +7,7 @@ export const HATHORA_APP_ID = "app-71bf9a1f-6fcd-4ad5-aad8-30618715825f";
 
 export type LobbyState = { playerCount: number };
 
-export const hathoraSetLobbyState = async (roomId: string, playerCount: number) => {
+export const setLobbyState = async (roomId: string, playerCount: number) => {
     await lobbyClient.setLobbyState(
         HATHORA_APP_ID,
         roomId,
@@ -19,7 +19,7 @@ export const hathoraSetLobbyState = async (roomId: string, playerCount: number) 
     );
 }
 
-export const hathoraDestroyLobby = async (roomId: string) => {
+export const destroyLobby = async (roomId: string) => {
     await roomClient.destroyRoom(
         HATHORA_APP_ID,
         roomId,
