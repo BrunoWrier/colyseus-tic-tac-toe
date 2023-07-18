@@ -24,8 +24,6 @@ export class TicTacToe extends Room<State> {
 
   onCreate (options: MyRoomOptions) {
     this.roomId = options.customRoomId
-    console.log("room id: " + this.roomId)
-    console.log("hathora id: " + options.customRoomId)
 
     this.setState(new State());
     this.onMessage("action", (client, message) => this.playerAction(client, message));

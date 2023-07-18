@@ -6,7 +6,7 @@ import EndGameScreen from './EndGameScreen'
 
 import Board from '../components/Board'
 
-import { hathoraFindLobbies } from '../client-hathora'
+import { findAvailableLobby, createLobby, findlobbiesReturn } from '../client-hathora'
 import { Client } from 'colyseus.js'
 
 export default class GameScreen extends PIXI.Container {
@@ -34,48 +34,48 @@ export default class GameScreen extends PIXI.Container {
   }
 
   async connect () {
-    let create = false
-    const getInfo = await hathoraFindLobbies();
-    create = getInfo.create;
-    
-    const client = new Client(getInfo.url)
+    let getInfo = await findAvailableLobby();
+    let create = (getInfo === undefined ? true : false)
 
-    if (client){
-      if (create == true){
-        this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
-      }else{
-        this.room = await client.joinById(getInfo.roomId);
-      }
-
-      let numPlayers = 0;
-      this.room.state.players.onAdd(() => {
-        numPlayers++;
-
-        if (numPlayers === 2) {
-          this.onJoin();
-        }
-      });
-
-      this.room.state.board.onChange((value, index) => {
-        const x = index % 3;
-        const y = Math.floor(index / 3);
-        this.board.set(x, y, value);
-      })
-
-      this.room.state.listen("currentTurn", (sessionId) => {
-        // go to next turn after a little delay, to ensure "onJoin" gets called before this.
-        setTimeout(() => this.nextTurn(sessionId), 10);
-      });
-
-      this.room.state.listen("draw", () => this.drawGame());
-      this.room.state.listen("winner", (sessionId) => this.showWinner(sessionId));
-
-      this.room.state.onChange((changes) => {
-        console.log("state.onChange =>", changes);
-      });
-
-      this.room.onError.once(() => this.emit('goto', TitleScreen));
+    if (create == true){
+      const lobby = await createLobby();
+      getInfo = await findlobbiesReturn(lobby);
+      
+      const client = new Client(getInfo.url);
+      this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
+    }else{
+      const client = new Client(getInfo.url);
+      this.room = await client.joinById(getInfo.roomId);
     }
+
+    let numPlayers = 0;
+    this.room.state.players.onAdd(() => {
+      numPlayers++;
+
+      if (numPlayers === 2) {
+        this.onJoin();
+      }
+    });
+
+    this.room.state.board.onChange((value, index) => {
+      const x = index % 3;
+      const y = Math.floor(index / 3);
+      this.board.set(x, y, value);
+    })
+
+    this.room.state.listen("currentTurn", (sessionId) => {
+      // go to next turn after a little delay, to ensure "onJoin" gets called before this.
+      setTimeout(() => this.nextTurn(sessionId), 10);
+    });
+
+    this.room.state.listen("draw", () => this.drawGame());
+    this.room.state.listen("winner", (sessionId) => this.showWinner(sessionId));
+
+    this.room.state.onChange((changes) => {
+      console.log("state.onChange =>", changes);
+    });
+
+    this.room.onError.once(() => this.emit('goto', TitleScreen));
   }
 
   transitionIn () {

@@ -71,41 +71,21 @@ export const pollConnectionInfo = async (roomId: string) => {
     return result;
 }
 
-export const hathoraFindLobbies = async () => {
+export const findAvailableLobby = async () => {
   const rooms = await lobbyClient.listActivePublicLobbies(HATHORA_APP_ID);
 
-  if (rooms.length === 0){
-    let lobby = await createLobby();
-    return await findlobbiesReturn(lobby, true);
-  }
-  else if (rooms.length > 0){
-    for (let i = 0; i < rooms.length; i++) {
-      const element= rooms[i] as Lobby;
-      let elementState = element.state as LobbyState
+  for (let i = 0; i < rooms.length; i++) {
+    const room = rooms[i] as Lobby;
+    const roomState = room.state as LobbyState;
 
-      try{
-        if (typeof elementState.playerCount != 'number'){
-          return
-        }
-        if (elementState.playerCount > 1){
-          if (i == rooms.length - 1){
-            let lobby = await createLobby();
-            return await findlobbiesReturn(lobby, true);
-          }
-          else { continue }
-        }
-        else{
-          return await findlobbiesReturn(element, false);
-        }
-      }catch(error){
-        return await findlobbiesReturn(element, false);
-      }
+    if (roomState !== undefined && roomState.playerCount <= 1) {
+        return await findlobbiesReturn(room);
     }
   }
 }
 
-const findlobbiesReturn = async ( lobby, create: boolean ) => {
+export const findlobbiesReturn = async ( lobby: Lobby ) => {
   let info = await pollConnectionInfo(lobby.roomId);
   let url = `wss://1.proxy.hathora.dev:${info.port}`;
-  return { "create": create, "roomId": lobby.roomId, "url": url}
+  return { "roomId": lobby.roomId, "url": url}
 }
