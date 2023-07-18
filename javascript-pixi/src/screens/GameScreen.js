@@ -6,7 +6,7 @@ import EndGameScreen from './EndGameScreen'
 
 import Board from '../components/Board'
 
-import { findAvailableLobby, createLobby, findlobbiesReturn } from '../client-hathora'
+import { findAvailableLobby, createLobby, getLobbyInfo } from '../client-hathora'
 import { Client } from 'colyseus.js'
 
 export default class GameScreen extends PIXI.Container {
@@ -34,18 +34,17 @@ export default class GameScreen extends PIXI.Container {
   }
 
   async connect () {
-    let getInfo = await findAvailableLobby();
-    let create = (getInfo === undefined ? true : false)
+    const lobby = await findAvailableLobby();
 
-    if (create == true){
-      const lobby = await createLobby();
-      getInfo = await findlobbiesReturn(lobby);
+    if (lobby == undefined){
+      const newLobby = await createLobby();
+      const lobbyInfo = await getLobbyInfo(newLobby);
       
-      const client = new Client(getInfo.url);
-      this.room = await client.create("tictactoe", { customRoomId: getInfo.roomId });
+      const client = new Client(lobbyInfo.url);
+      this.room = await client.create("tictactoe", { customRoomId: lobbyInfo.roomId });
     }else{
-      const client = new Client(getInfo.url);
-      this.room = await client.joinById(getInfo.roomId);
+      const client = new Client(lobby.url);
+      this.room = await client.joinById(lobby.roomId);
     }
 
     let numPlayers = 0;

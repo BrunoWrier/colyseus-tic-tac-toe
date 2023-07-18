@@ -2,12 +2,12 @@ import { LobbyV2Api, RoomV1Api, AuthV1Api, Lobby} from "@hathora/hathora-cloud-s
 
 export const lobbyClient = new LobbyV2Api();
 export const roomClient = new RoomV1Api();
-export const authClient = new AuthV1Api();
-export const HATHORA_APP_ID = "app-71bf9a1f-6fcd-4ad5-aad8-30618715825f";
+const authClient = new AuthV1Api();
+const HATHORA_APP_ID = "app-71bf9a1f-6fcd-4ad5-aad8-30618715825f";
 
-export type LobbyState = { playerCount: number };
+type LobbyState = { playerCount: number };
 
-const getPing = async () => {
+const getLowestregion = async () => {
     const response = await fetch('https://api.hathora.dev/discovery/v1/ping');
 
     if (!response.ok) {
@@ -34,7 +34,7 @@ const getPing = async () => {
 }
 
 export const createLobby = async () => {
-  let pingRegion = await getPing()
+  let region = await getLowestregion()
 
   const playerToken = (await (authClient.loginAnonymous(HATHORA_APP_ID))).token;
   return await lobbyClient.createLobby(
@@ -42,7 +42,7 @@ export const createLobby = async () => {
       playerToken,
       {
         visibility: "public",
-        region: pingRegion,
+        region,
         initialConfig: {}
       },
   );
@@ -67,7 +67,6 @@ export const pollConnectionInfo = async (roomId: string) => {
         result = await getHathoraConnectionInfo(roomId);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     return result;
 }
 
@@ -79,13 +78,13 @@ export const findAvailableLobby = async () => {
     const roomState = room.state as LobbyState;
 
     if (roomState !== undefined && roomState.playerCount <= 1) {
-        return await findlobbiesReturn(room);
+        return await getLobbyInfo(room);
     }
   }
 }
 
-export const findlobbiesReturn = async ( lobby: Lobby ) => {
+export const getLobbyInfo = async ( lobby: Lobby ) => {
   let info = await pollConnectionInfo(lobby.roomId);
   let url = `wss://1.proxy.hathora.dev:${info.port}`;
-  return { "roomId": lobby.roomId, "url": url}
+  return { roomId: lobby.roomId, url}
 }
