@@ -9,10 +9,7 @@ import { TicTacToe } from "./rooms/tictactoe"
 const app = express();
 const port = Number(process.env.PORT || 3553);
 
-app.use(cors({
-  origin: '*', // Replace with your client domain
-  methods: ['GET', 'POST'], // Specify the allowed HTTP methods
-},));
+app.use(cors());
 app.use(express.json());
 
 const server = http.createServer(app);

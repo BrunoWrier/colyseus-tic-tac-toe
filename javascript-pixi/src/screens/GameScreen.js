@@ -13,7 +13,6 @@ export default class GameScreen extends PIXI.Container {
 
   constructor () {
     super()
-    
     let text = 'Waiting for an opponent...'
     
     this.waitingText = new PIXI.Text(text, {

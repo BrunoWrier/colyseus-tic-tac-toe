@@ -1,36 +1,26 @@
-import { LobbyV2Api, RoomV1Api, AuthV1Api, Lobby } from "@hathora/hathora-cloud-sdk";
+import { LobbyV2Api, RoomV1Api, AuthV1Api, Lobby, DiscoveryV1Api, Region } from "@hathora/hathora-cloud-sdk";
 
 export const lobbyClient = new LobbyV2Api();
 export const roomClient = new RoomV1Api();
 const authClient = new AuthV1Api();
+const discoveryClient = new DiscoveryV1Api();
 const HATHORA_APP_ID = "app-71bf9a1f-6fcd-4ad5-aad8-30618715825f";
 
 type LobbyState = { playerCount: number };
 
 const getLowestPingRegion = async () => {
-    const response = await fetch('https://api.hathora.dev/discovery/v1/ping');
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    const connectionPromises = data.map(({ region, host, port }) => {
-      return new Promise(async (resolve) => {
-        const pingUrl = `wss://${host}:${port}`;
-        const socket = new WebSocket(pingUrl);
-
-        socket.addEventListener('open', () => {
-          resolve({ region });
-          socket.close();
-        });
+  const data = await discoveryClient.getPingServiceEndpoints();
+  const regionPromises = data.map(({ region, host, port }) => {
+    return new Promise<Region>(async (resolve) => {
+      const pingUrl = `wss://${host}:${port}`;
+      const socket = new WebSocket(pingUrl);
+      socket.addEventListener('open', () => {
+        resolve(region);
+        socket.close();
       });
     });
-
-    const { region } = await Promise.race(connectionPromises);
-
-    return region;
+  });
+  return await Promise.race(regionPromises);
 }
 
 export const createLobby = async () => {
