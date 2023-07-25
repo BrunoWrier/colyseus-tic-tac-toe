@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@gamestdio/timer": "^1.1.9",
-    "@hathora/hathora-cloud-sdk": "^0.0.4",
+    "@hathora/hathora-cloud-sdk": "^0.0.5",
     "colyseus.js": "^0.15.10",
     "pixi.js": "^4.7.3",
     "tweener": "^0.1.3"

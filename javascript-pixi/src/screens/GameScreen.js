@@ -38,7 +38,6 @@ export default class GameScreen extends PIXI.Container {
     if (lobby == undefined){
       const newLobby = await createLobby();
       const newLobbyInfo = await getLobbyInfo(newLobby);
-      
       const client = new Client(newLobbyInfo.url);
       this.room = await client.create("tictactoe", { customRoomId: newLobbyInfo.roomId });
     }else{
