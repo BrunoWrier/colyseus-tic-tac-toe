@@ -1,4 +1,4 @@
-import { LobbyV2Api, RoomV1Api, AuthV1Api, Lobby} from "@hathora/hathora-cloud-sdk";
+import { LobbyV2Api, RoomV1Api, AuthV1Api, Lobby } from "@hathora/hathora-cloud-sdk";
 
 export const lobbyClient = new LobbyV2Api();
 export const roomClient = new RoomV1Api();
@@ -35,16 +35,11 @@ const getLowestPingRegion = async () => {
 
 export const createLobby = async () => {
   let region = await getLowestPingRegion()
-
   const playerToken = (await (authClient.loginAnonymous(HATHORA_APP_ID))).token;
   return await lobbyClient.createLobby(
       HATHORA_APP_ID,
       playerToken,
-      {
-        visibility: "public",
-        region,
-        initialConfig: {}
-      },
+      { visibility: "public", region, initialConfig: {} },
   );
 }
 
