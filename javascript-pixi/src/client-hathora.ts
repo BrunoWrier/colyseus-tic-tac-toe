@@ -44,14 +44,12 @@ const getHathoraConnectionInfo = async (roomId: string) => {
     return info;
 }
 
-export const pollConnectionInfo = async (roomId: string) => {
+const pollConnectionInfo = async (roomId: string) => {
     let result;
-
     while (result === undefined || result.status === 'starting' ) {
         await new Promise((resolve) => setTimeout(resolve, 200));
         result = await getHathoraConnectionInfo(roomId);
     }
-
     return result;
 }
 
