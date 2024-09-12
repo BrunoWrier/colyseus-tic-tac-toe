@@ -1,5 +1,11 @@
 import { Room, Delayed, Client } from 'colyseus';
 import { type, Schema, MapSchema, ArraySchema } from '@colyseus/schema';
+import { setLobbyState, destroyLobby } from '../server-hathora.ts';
+
+interface MyRoomOptions {
+  // Define your custom room options here
+  customRoomId: string;
+}
 
 const TURN_TIMEOUT = 10
 const BOARD_WIDTH = 3;
@@ -16,12 +22,16 @@ export class TicTacToe extends Room<State> {
   maxClients = 2;
   randomMoveTimeout: Delayed;
 
-  onCreate () {
+  onCreate (options: MyRoomOptions) {
+    this.roomId = options.customRoomId
+
     this.setState(new State());
     this.onMessage("action", (client, message) => this.playerAction(client, message));
+
+    setLobbyState(this.roomId, this.clients.length)
   }
 
-  onJoin (client: Client) {
+  async onJoin (client: Client) {
     this.state.players.set(client.sessionId, true);
 
     if (this.state.players.size === 2) {
@@ -31,6 +41,7 @@ export class TicTacToe extends Room<State> {
       // lock this room for new users
       this.lock();
     }
+    await setLobbyState(this.roomId, this.clients.length)
   }
 
   playerAction (client: Client, data: any) {
@@ -139,7 +150,7 @@ export class TicTacToe extends Room<State> {
     return won;
   }
 
-  onLeave (client) {
+  async onLeave (client) {
     this.state.players.delete(client.sessionId);
 
     if (this.randomMoveTimeout) {
@@ -150,6 +161,11 @@ export class TicTacToe extends Room<State> {
     if (!this.state.winner && !this.state.draw && remainingPlayerIds.length > 0) {
       this.state.winner = remainingPlayerIds[0]
     }
+    await setLobbyState(this.roomId, this.clients.length)
+  }
+
+  async onDispose () {
+    await destroyLobby(this.roomId)
   }
 
 }

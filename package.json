@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "HTML5 Tic-Tac-Toe Game powered by Colyseus",
   "scripts": {
-    "install": "npm install --prefix ./server && npm install --prefix ./javascript-pixi && npm run build --prefix ./frontend",
+    "install": "npm install --prefix ./server && npm install --prefix ./javascript-pixi",
     "start": "npm start --prefix ./server"
   },
   "author": "Endel Dreyer",
   "dependencies": {
+    "@hathora/hathora-cloud-sdk": "^0.0.5",
     "css-loader": "^0.28.11",
     "json-loader": "^0.5.7",
     "style-loader": "^0.20.3",

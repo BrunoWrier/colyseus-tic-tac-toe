@@ -6,15 +6,15 @@ import EndGameScreen from './EndGameScreen'
 
 import Board from '../components/Board'
 
+import { findAvailableLobby, createLobby, getLobbyInfo } from '../client-hathora'
+import { Client } from 'colyseus.js'
+
 export default class GameScreen extends PIXI.Container {
 
   constructor () {
     super()
-
-    let text = (colyseus.readyState === WebSocket.CLOSED)
-      ? "Couldn't connect."
-      : "Waiting for an opponent..."
-
+    let text = 'Waiting for an opponent...'
+    
     this.waitingText = new PIXI.Text(text, {
       font: "100px JennaSue",
       fill: '#000',
@@ -33,7 +33,18 @@ export default class GameScreen extends PIXI.Container {
   }
 
   async connect () {
-    this.room = await colyseus.joinOrCreate('tictactoe');
+    const lobby = await findAvailableLobby();
+
+    if (lobby == undefined){
+      const newLobby = await createLobby();
+      const newLobbyInfo = await getLobbyInfo(newLobby);
+      const client = new Client(newLobbyInfo.url);
+      this.room = await client.create("tictactoe", { customRoomId: newLobbyInfo.roomId });
+    }else{
+      const lobbyInfo = await getLobbyInfo(lobby);
+      const client = new Client(lobbyInfo.url);
+      this.room = await client.joinById(lobbyInfo.roomId);
+    }
 
     let numPlayers = 0;
     this.room.state.players.onAdd(() => {
